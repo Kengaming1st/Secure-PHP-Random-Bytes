@@ -5,7 +5,7 @@
 Secure PHP random bytes
 by @shoghicp
 
-Basic Usage: string randomBytes( [ int $lenght = 16 [, bool $secure = true [, bool $raw = true [, string $startEntropy = "" [, &$rounds ]]]]])
+Basic Usage: string randomBytes( [ int $lenght = 16 [, bool $secure = true [, bool $raw = true [, mixed $startEntropy = "" [, &$rounds [, &$drop ]]]]]])
 
 	$lenght = 16;
 	$bytes = randomBytes($lenght, true, false); //This will return 32 secure hexadecimal characters
@@ -27,14 +27,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-	function randomBytes($lenght = 16, $secure = true, $raw = true, $startEntropy = "", &$rounds = 0){
+	function randomBytes($lenght = 16, $secure = true, $raw = true, $startEntropy = "", &$rounds = 0, &$drop = 0){
 		$output = b"";
 		$lenght = abs((int) $lenght);
 		$rounds = 0;
+		$drop = 0;
 		while(!isset($output{$lenght - 1})){
 			//some entropy, but works ^^
 			$entropy = array(
-				$startEntropy,
+				is_array($startEntropy) ? $startEntropy[($rounds + $drop) % count($startEntropy)]:$startEntropy, //Get a random index of the startEntropy, or just read it
 				serialize(stat(__FILE__)),
 				__DIR__,
 				PHP_OS,
@@ -64,20 +65,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			
 			shuffle($entropy);
 			$value = str_repeat("\x00", 16);
-			foreach($entropy as $c){ //mixing entropy values with XOR
+			foreach($entropy as $k => $c){ //mixing entropy values with XOR and hash randomness extractor
 				$c = (string) $c;
 				str_shuffle($c); //randomize characters
 				for($i = 0; $i < 32; $i += 16){
-					$value ^= hash("md5", $i . $c . microtime(), true);
-					$value ^= substr(hash("sha256", $i . $c . microtime(), true), $i, 16);
-					$value ^= hash("ripemd128", $i . $c . microtime(), true);
+					$value ^= hash("md5", $i . $c . microtime() . $k, true);
+					$value ^= substr(hash("sha256", $i . $c . microtime() . $k, true), $i, 16);
+					$value ^= hash("ripemd128", $i . $c . microtime() . $k, true);
 				}
 				
 			}
 			unset($entropy);
 			
 			if($secure === true){
-				//Von Neumann entropy extractor, increases entropy
+				//Von Neumann randomness extractor, increases entropy
 				$secureValue = "";
 				for($i = 0; $i < 128; $i += 2){
 					$a = ord($value{$i >> 3});
@@ -87,6 +88,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 					$c = ($a & $c) === $c ? "1":"0";
 					if($b !== $c){
 						$secureValue .= $b;
+						++$drop;
+					}else{
+						$drop += 2;
 					}
 				}
 				$value = "";
