@@ -30,12 +30,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	function randomBytes($lenght = 16, $secure = true, $raw = true, $startEntropy = "", &$rounds = 0, &$drop = 0){
 		$output = b"";
 		$lenght = abs((int) $lenght);
+		$secureValue = "";
 		$rounds = 0;
 		$drop = 0;
 		while(!isset($output{$lenght - 1})){
 			//some entropy, but works ^^
-			$entropy = array(
-				is_array($startEntropy) ? $startEntropy[($rounds + $drop) % count($startEntropy)]:$startEntropy, //Get a random index of the startEntropy, or just read it
+			$weakEntropy = array(
 				serialize(stat(__FILE__)),
 				__DIR__,
 				PHP_OS,
@@ -57,15 +57,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				sys_get_temp_dir(),
 				disk_free_space("."),
 				disk_total_space("."),
-				(function_exists("openssl_random_pseudo_bytes") and version_compare(PHP_VERSION, "5.3.4", ">=")) ? openssl_random_pseudo_bytes(16):microtime(true),
-				function_exists("mcrypt_create_iv") ? mcrypt_create_iv(16, MCRYPT_DEV_URANDOM) : microtime(true),
+				function_exists("mcrypt_create_iv") ? mcrypt_create_iv(16, MCRYPT_DEV_URANDOM) : microtime(),
 				uniqid(microtime(true),true),
-				file_exists("/dev/urandom") ? fread(fopen("/dev/urandom", "rb"),256):microtime(true),
 			);
 			
-			shuffle($entropy);
+			shuffle($weakEntropy);
 			$value = str_repeat("\x00", 16);
-			foreach($entropy as $k => $c){ //mixing entropy values with XOR and hash randomness extractor
+			foreach($weakEntropy as $k => $c){ //mixing entropy values with XOR and hash randomness extractor
 				$c = (string) $c;
 				str_shuffle($c); //randomize characters
 				for($i = 0; $i < 32; $i += 16){
@@ -73,34 +71,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 					$value ^= substr(hash("sha256", $i . $c . microtime() . $k, true), $i, 16);
 					$value ^= hash("ripemd128", $i . $c . microtime() . $k, true);
 				}
-				
 			}
-			unset($entropy);
+			unset($weakEntropy);
 			
 			if($secure === true){
+				$strongEntropy = array(
+					is_array($startEntropy) ? $startEntropy[($rounds + $drop) % count($startEntropy)]:$startEntropy, //Get a random index of the startEntropy, or just read it
+					file_exists("/dev/urandom") ? fread(fopen("/dev/urandom", "rb"), 512):"",
+					(function_exists("openssl_random_pseudo_bytes") and version_compare(PHP_VERSION, "5.3.4", ">=")) ? openssl_random_pseudo_bytes(512):"",
+					$value,
+				);
+				shuffle($strongEntropy);
+				$strongEntropy = implode($strongEntropy);
+				$value = "";
 				//Von Neumann randomness extractor, increases entropy
-				$secureValue = "";
-				for($i = 0; $i < 128; $i += 2){
-					$a = ord($value{$i >> 3});
+				$len = strlen($strongEntropy) * 8;
+				for($i = 0; $i < $len; $i += 2){
+					$a = ord($strongEntropy{$i >> 3});
 					$b = 1 << ($i % 8);
 					$c = 1 << (($i % 8) + 1);
 					$b = ($a & $b) === $b ? "1":"0";
 					$c = ($a & $c) === $c ? "1":"0";
 					if($b !== $c){
 						$secureValue .= $b;
+						if(isset($secureValue{7})){
+							$value .= chr(bindec($secureValue));
+							$secureValue = "";
+						}
 						++$drop;
 					}else{
 						$drop += 2;
 					}
 				}
-				$value = "";
-				$secureValue = str_split($secureValue, 8);
-				foreach($secureValue as $c){
-					$value .= chr(bindec($c));
-				}
 			}
 			$output .= substr($value, 0, min($lenght - strlen($output), $lenght));
-			unset($value, $secureValue);
+			unset($value);
 			++$rounds;
 		}
 		return $raw === false ? bin2hex($output):$output;
