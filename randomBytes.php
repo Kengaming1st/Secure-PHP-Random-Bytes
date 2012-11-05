@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		$output = b"";
 		$lenght = abs((int) $lenght);
 		$rounds = 0;
-		while(strlen($output) < $lenght){
+		while(!isset($output{$lenght - 1})){
 			//some entropy, but works ^^
 			$entropy = array(
 				$startEntropy,
@@ -57,9 +57,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				disk_free_space("."),
 				disk_total_space("."),
 				(function_exists("openssl_random_pseudo_bytes") and version_compare(PHP_VERSION, "5.3.4", ">=")) ? openssl_random_pseudo_bytes(16):microtime(true),
-				function_exists("mcrypt_create_iv") ? mcrypt_create_iv(16, ($secure === true ? MCRYPT_DEV_RANDOM:MCRYPT_DEV_URANDOM)) : microtime(true),
+				function_exists("mcrypt_create_iv") ? mcrypt_create_iv(16, MCRYPT_DEV_URANDOM) : microtime(true),
 				uniqid(microtime(true),true),
-				//$secure === true ? (file_exists("/dev/random") ? fread(fopen("/dev/random", "rb"),8):microtime(true)):microtime(true),
 				file_exists("/dev/urandom") ? fread(fopen("/dev/urandom", "rb"),256):microtime(true),
 			);
 			
