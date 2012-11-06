@@ -57,20 +57,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				sys_get_temp_dir(),
 				disk_free_space("."),
 				disk_total_space("."),
-				function_exists("mcrypt_create_iv") ? mcrypt_create_iv(16, MCRYPT_DEV_URANDOM) : microtime(),
+				function_exists("mcrypt_create_iv") ? mcrypt_create_iv(128, MCRYPT_DEV_URANDOM) : microtime(),
 				uniqid(microtime(true),true),
 			);
 			
 			shuffle($weakEntropy);
-			$value = str_repeat("\x00", 16);
+			$value = hash("sha256", implode($weakEntropy), true);
 			foreach($weakEntropy as $k => $c){ //mixing entropy values with XOR and hash randomness extractor
 				$c = (string) $c;
 				str_shuffle($c); //randomize characters
-				for($i = 0; $i < 32; $i += 16){
-					$value ^= hash("md5", $i . $c . microtime() . $k, true);
-					$value ^= substr(hash("sha256", $i . $c . microtime() . $k, true), $i, 16);
-					$value ^= hash("ripemd128", $i . $c . microtime() . $k, true);
-				}
+				$value ^= hash("md5", $c . microtime() . $k, true) . hash("md5", microtime() . $k . $c, true);
+				$value ^= hash("sha256", $c . microtime() . $k, true);
 			}
 			unset($weakEntropy);
 			

@@ -13,9 +13,10 @@ Basic Usage: string randomBytes( [ int $lenght = 16 [, bool $secure = true [, bo
 
 	
 Randomness tests using ENT (http://www.fourmilab.ch/random/)
-	Machine: Windows 7 SP1 x64 PHP 5.4.3, So no /dev/urandom
+	Machine: Windows 7 SP1 Intel i5 2.4 GHz x64 PHP 5.4.3, So no /dev/urandom
+	
+	USING SECURE MODE
 	Generator code: randomBytes(524288, true, true, "", $rounds, $drop);
-
 	Output:
 		Entropy = 7.999653 bits per byte.
 
@@ -28,7 +29,22 @@ Randomness tests using ENT (http://www.fourmilab.ch/random/)
 		Arithmetic mean value of data bytes is 127.3803 (127.5 = random).
 		Monte Carlo value for Pi is 3.144482210 (error 0.09 percent).
 		Serial correlation coefficient is -0.002599 (totally uncorrelated = 0.0).
-	
+		
+	USING NON-SECURE MODE
+	Generator code: randomBytes(1048576, false, true, "", $rounds, $drop);
+	Output:
+		Entropy = 7.999840 bits per byte.
+
+		Optimum compression would reduce the size
+		of this 1048576 byte file by 0 percent.
+
+		Chi square distribution for 1048576 samples is 232.65, and randomly
+		would exceed this value 83.90 percent of the times.
+
+		Arithmetic mean value of data bytes is 127.5482 (127.5 = random).
+		Monte Carlo value for Pi is 3.139217908 (error 0.08 percent).
+		Serial correlation coefficient is -0.002567 (totally uncorrelated = 0.0).
+		
 	
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by

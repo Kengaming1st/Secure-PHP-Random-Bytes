@@ -21,9 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 include("randomBytes.php");
 
-
+$start = microtime(true);
 echo "Stream: ".randomBytes(32, true, false, "", $rounds, $drop).PHP_EOL; //This will return an output of 32 bytes hex-encoded, and using secure reconbination of data.
+echo "Elapsed: ".round(microtime(true) - $start, 4)." seconds".PHP_EOL;
 echo "Rounds: ".$rounds.PHP_EOL;
-$tBits = $rounds * 16 * 8; //Total number of bits generated
-echo "Total bits: ".$tBits.PHP_EOL;
-echo "Dropped bits: ".$drop." ".round(($drop / $tBits) * 100, 2)."%".PHP_EOL;
+echo "Dropped bits: ".$drop.PHP_EOL;
