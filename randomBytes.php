@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		while(!isset($output{$lenght - 1})){
 			//some entropy, but works ^^
 			$weakEntropy = array(
+				is_array($startEntropy) ? implode($startEntropy):$startEntropy,
 				serialize(stat(__FILE__)),
 				__DIR__,
 				PHP_OS,
@@ -60,7 +61,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				sys_get_temp_dir(),
 				(string) disk_free_space("."),
 				(string) disk_total_space("."),
-				function_exists("mcrypt_create_iv") ? mcrypt_create_iv(128, MCRYPT_DEV_URANDOM) : microtime(),
 				uniqid(microtime(),true),
 			);
 			
@@ -79,6 +79,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 					is_array($startEntropy) ? $startEntropy[($rounds + $drop) % count($startEntropy)]:$startEntropy, //Get a random index of the startEntropy, or just read it
 					file_exists("/dev/urandom") ? fread(fopen("/dev/urandom", "rb"), 512):"",
 					(function_exists("openssl_random_pseudo_bytes") and version_compare(PHP_VERSION, "5.3.4", ">=")) ? openssl_random_pseudo_bytes(512):"",
+					function_exists("mcrypt_create_iv") ? mcrypt_create_iv(512, MCRYPT_DEV_URANDOM) : "",
 					$value,
 				);
 				shuffle($strongEntropy);
