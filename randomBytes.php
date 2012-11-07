@@ -5,11 +5,11 @@
 Secure PHP random bytes
 by @shoghicp
 
-Basic Usage: string randomBytes( [ int $lenght = 16 [, bool $secure = true [, bool $raw = true [, mixed $startEntropy = "" [, &$rounds [, &$drop ]]]]]])
+Basic Usage: string randomBytes( [ int $length = 16 [, bool $secure = true [, bool $raw = true [, mixed $startEntropy = "" [, &$rounds [, &$drop ]]]]]])
 
-	$lenght = 16;
-	$bytes = randomBytes($lenght, true, false); //This will return 32 secure hexadecimal characters
-	$bytes = randomBytes($lenght, false, true); //This will return 16 binary characters
+	$length = 16;
+	$bytes = randomBytes($length, true, false); //This will return 32 secure hexadecimal characters
+	$bytes = randomBytes($length, false, true); //This will return 16 binary characters
 
 
 This program is free software: you can redistribute it and/or modify
@@ -27,13 +27,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-	function randomBytes($lenght = 16, $secure = true, $raw = true, $startEntropy = "", &$rounds = 0, &$drop = 0){
+	function randomBytes($length = 16, $secure = true, $raw = true, $startEntropy = "", &$rounds = 0, &$drop = 0){
 		$output = b"";
-		$lenght = abs((int) $lenght);
+		$length = abs((int) $length);
 		$secureValue = "";
 		$rounds = 0;
 		$drop = 0;
-		while(!isset($output{$lenght - 1})){
+		while(!isset($output{$length - 1})){
 			//some entropy, but works ^^
 			$weakEntropy = array(
 				is_array($startEntropy) ? implode($startEntropy):$startEntropy,
@@ -105,7 +105,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 					}
 				}
 			}
-			$output .= substr($value, 0, min($lenght - strlen($output), $lenght));
+			$output .= substr($value, 0, min($length - strlen($output), $length));
 			unset($value);
 			++$rounds;
 		}
