@@ -4,11 +4,11 @@ by @shoghicp
 Useful for generating strong keys or random data. Better than default PHP random functions. Lots of different sources of entropy
 
 
-Basic Usage: string randomBytes( [ int $lenght = 16 [, bool $secure = true [, bool $raw = true [, mixed $startEntropy = "" [, &$rounds [, &$drop ]]]]]])
+Basic Usage: string randomBytes( [ int $length = 16 [, bool $secure = true [, bool $raw = true [, mixed $startEntropy = "" [, &$rounds [, &$drop ]]]]]])
 
-	$lenght = 16;
-	$bytes = randomBytes($lenght, true, false); //This will return 32 secure hexadecimal characters
-	$bytes = randomBytes($lenght, false, true); //This will return 16 binary characters
+	$length = 16;
+	$bytes = randomBytes($length, true, false); //This will return 32 secure hexadecimal characters
+	$bytes = randomBytes($length, false, true); //This will return 16 binary characters
 
 
 	
